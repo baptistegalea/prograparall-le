@@ -7,12 +7,12 @@ var genFood = setInterval(function(){
 	
 	var random = Math.random() * 10000;
 	
-	if(random < 9000){
+	if(random < 5000){
 		
 		var pourcLeft = Math.floor(Math.random() * 1820) + 10; 
 		var pourcTop = Math.floor(Math.random() * 1820) + 10;
 		var size =  Math.floor(Math.random() * 12) + 5;
-		var time = 30;		
+		var time = 120;		
 		
 		foodList.push({left: pourcLeft, top: pourcTop, timeLeft: time, size: size});	
 
@@ -21,7 +21,7 @@ var genFood = setInterval(function(){
 	
 	foodList = updateFoodList();
 	
-}, 1000);
+}, 250);
 
 
 function updateFoodList(){
