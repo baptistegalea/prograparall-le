@@ -37,31 +37,31 @@ function updateDirection(key){
 	var result = true;
 
 	
-	if((playerData.direction == 'left' && key == 39) || (playerData.direction == 'right' && key == 37)){
+	if((playerData.direction == 'left' && key == 81) || (playerData.direction == 'right' && key == 68)){
 		result = false;
 	}
 	
-	if((playerData.direction == 'top' && key == 40) || (playerData.direction == 'bot' && key == 38)){
+	if((playerData.direction == 'top' && key == 90) || (playerData.direction == 'bot' && key == 83)){
 		result = false;
 	}
 	
 	if(result){
-		if(key == 37){
+		if(key == 81){
 			playerData.direction = "left";
 			playerData.deplacement = {left: "-=5"};
 		}
 		
-		if(key == 38){
+		if(key == 90){
 			playerData.direction = "top";
 			playerData.deplacement = {top: "-=5"};
 		}	
 	
-		if(key == 39){
+		if(key == 68){
 			playerData.direction = "right";
 			playerData.deplacement = {left: "+=5"};
 		}
 		
-		if(key == 40){
+		if(key == 83){
 			playerData.direction = "bot";
 			playerData.deplacement = {top: "+=5"};
 		}	

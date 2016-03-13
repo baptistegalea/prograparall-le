@@ -1,8 +1,9 @@
 
 var foodList = [];
 var increment = 1;
-var player;
-	
+var player1= {nom: 'Player1', position: {left: '1', top: '1', height: '30', width: '30'}};
+var player2= {nom: 'Player2', position: {left: '500', top: '500', height: '30', width: '30'}};
+
 var interGenFood = setInterval(function(){
 	
 	var random = Math.random() * 10000;
@@ -12,7 +13,7 @@ var interGenFood = setInterval(function(){
 		var pourcLeft = Math.floor(Math.random() * 1820) + 10; 
 		var pourcTop = Math.floor(Math.random() * 1820) + 10;
 		var size =  Math.floor(Math.random() * 12) + 5;
-		var time = 330;	
+		var time = 400;	
 		var id = 'food-' + increment;
 		
 		var food = {id: id, left: pourcLeft, top: pourcTop, timeLeft: time, size: size};
@@ -37,8 +38,10 @@ function updateFoodList(){
 	foodList.forEach(function(food){
 		food.timeLeft--;	
 		
-		if(collision(player, food)){
-			onCollision(food);			
+		if(collision(player1.position, food)){
+			onCollision(food, player1);
+		}else if(collision(player2.position, food)){
+			onCollision(food, player2);
 		}else{
 			if(food.timeLeft > 0){
 				newList.push(food);
@@ -66,8 +69,10 @@ onmessage=function(event){
 	if (data.type === 'stop'){
     	clearInterval(interGenFood);
     	clearInterval(interUpdateFoodList);
-	}else if(data.type === 'updatePlayerPo'){
-		player = data.position;
+	}else if(data.type === 'updatePlayer1Po'){
+		player1.position = data.position;
+	}else if(data.type === 'updatePlayer2Po'){
+		player2.position = data.position;
 	}
 }
 
@@ -89,15 +94,15 @@ function collision(player, food) {
     return true;
   }
 
-function onCollision(food){
+function onCollision(food, player){
 	var bonus = (food.size/4);
 	
-	var newPlayerWidth = player.width + bonus;
-	var newPlayerHeight = player.height + bonus;
+	var newPlayerWidth = player.position.width + bonus;
+	var newPlayerHeight = player.position.height + bonus;
 	
 	var size = {width: newPlayerWidth, height: newPlayerHeight};
 	postMessage({type: 'collision', divId: food.id});
-	postMessage({type: 'playerSizeUpdate', newPlayerSize: size});
+	postMessage({type: 'playerSizeUpdate', newPlayerSize: size, nomPlayer: player.nom});
 }
 
 
