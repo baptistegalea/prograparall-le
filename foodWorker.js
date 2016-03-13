@@ -1,9 +1,9 @@
 
 var foodList = [];
 var increment = 1;
-
+var player;
 	
-var genFood = setInterval(function(){
+var interGenFood = setInterval(function(){
 	
 	var random = Math.random() * 10000;
 	
@@ -12,40 +12,49 @@ var genFood = setInterval(function(){
 		var pourcLeft = Math.floor(Math.random() * 1820) + 10; 
 		var pourcTop = Math.floor(Math.random() * 1820) + 10;
 		var size =  Math.floor(Math.random() * 12) + 5;
-		var time = 120;	
+		var time = 330;	
 		var id = 'food-' + increment;
-		foodList.push({id: id, left: pourcLeft, top: pourcTop, timeLeft: time, size: size});	
+		
+		var food = {id: id, left: pourcLeft, top: pourcTop, timeLeft: time, size: size};
+		
+		foodList.push(food);	
 		increment++;
+		
+		postMessage({type: 'addNewFood', html: getHtmlFood(food)});
 	}
-	postMessage({type: 'update', html: getHtml()});
-	
-	foodList = updateFoodList();
+
 	
 }, 250);
 
+var interUpdateFoodList = setInterval(function(){
+	foodList = updateFoodList();
+}, 30);
 
 function updateFoodList(){
 	
 	var newList = [];
 	
 	foodList.forEach(function(food){
-		food.timeLeft--;
-		if(food.timeLeft > 0)
-			newList.push(food);		
+		food.timeLeft--;	
+		
+		if(collision(player, food)){
+			onCollision(food);			
+		}else{
+			if(food.timeLeft > 0){
+				newList.push(food);
+			}else{
+				postMessage({type: 'foodTimeLeft', divId: food.id});
+			}
+		}
 	});
 
 	return newList;
 }
 
-function getHtml(){
-	
+function getHtmlFood(food){
 	var html = '';
 	
-	foodList.forEach(function(food){
-		
-		html += '<div class="food" id="'+ food.id +'" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
-		
-	});
+	html = '<div class="food" id="'+ food.id +'" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
 	
 	return html;
 	
@@ -55,24 +64,10 @@ onmessage=function(event){
 	
 	var data = event.data;
 	if (data.type === 'stop'){
-    	clearInterval(genFood);
-	}else if(data.type === 'playerPo'){
-		var player = data.position;
-		var safeFoodList = [];
-		//console.log(player);
-		foodList.forEach(function(food){
-			
-			if(collision(player, food)){
-				console.log('collision');
-				var size = {width: (food.size/4) + player.width, height: (food.size/4) + player.height};
-				postMessage({type: 'collision', collision: 'true', size: size});
-				
-			}else{
-				safeFoodList.push(food);
-			}
-		});
-		foodList = safeFoodList;
-		//console.log(event.data);
+    	clearInterval(interGenFood);
+    	clearInterval(interUpdateFoodList);
+	}else if(data.type === 'updatePlayerPo'){
+		player = data.position;
 	}
 }
 
@@ -93,4 +88,16 @@ function collision(player, food) {
     if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
     return true;
   }
+
+function onCollision(food){
+	var bonus = (food.size/4);
+	
+	var newPlayerWidth = player.width + bonus;
+	var newPlayerHeight = player.height + bonus;
+	
+	var size = {width: newPlayerWidth, height: newPlayerHeight};
+	postMessage({type: 'collision', divId: food.id});
+	postMessage({type: 'playerSizeUpdate', newPlayerSize: size});
+}
+
 

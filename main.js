@@ -10,7 +10,8 @@
 // liste des touches autorisées //
 var keysAllowed = [27, 38, 39, 40, 37];
 
-var snakeWorker=new Worker("snakeWorker.js");
+var player1=new Worker("player1Worker.js");
+//var player2=new Worker("player2Worker.js");
 var foodWorker=new Worker("foodWorker.js");
 var player = {
 		deplacement: {left: "+=5"},
@@ -29,7 +30,8 @@ var avancer = setInterval(function(){
     var w1 = $( "#player1" ).outerWidth(true);
     var playerPosition = {left: x1, top: y1, height: h1, width: w1};
     
-	foodWorker.postMessage({type: 'playerPo', position: playerPosition});
+    // transmission de la position du player, à chaque déplacement, au thread food
+	foodWorker.postMessage({type: 'updatePlayerPo', position: playerPosition});
 }, player.vitesse);
 
 
@@ -54,13 +56,13 @@ onkeydown = function(e){
         	foodWorker.postMessage({type: 'stop'});
         }else{
         	var data = {snakeData: player, keyData: e.keyCode};
-        	snakeWorker.postMessage(data);
+        	player1.postMessage(data);
         }    
     };
     
 };
 
-snakeWorker.onmessage=function(event){
+player1.onmessage=function(event){
 	var value = event.data; 
 	if(value){
 		player = value;
@@ -70,14 +72,14 @@ snakeWorker.onmessage=function(event){
 foodWorker.onmessage=function(event){
 	var value = event.data;
 	if(value){
-		if(value.type === 'collision'){
-			player.size = value.size;
-		}else if (value.type === 'update'){
-			if($('#map').html != value.html){
-				$('.food').remove();
-				$('#map').append(value.html);
-			}
-
+		if(value.type === 'collision' || value.type === 'foodTimeLeft'){
+			console.log(value.divId);
+			$('#' + value.divId).remove();
+		}else if(value.type === "addNewFood"){
+			$('#map').append(value.html);
+		}else if(value.type === "playerSizeUpdate"){
+			player.size = value.newPlayerSize;
 		}
+	
 	}
 };
