@@ -29,7 +29,7 @@ var avancer = setInterval(function(){
     var w1 = $( "#player1" ).outerWidth(true);
     var playerPosition = {left: x1, top: y1, height: h1, width: w1};
     
-	foodWorker.postMessage(playerPosition);
+	foodWorker.postMessage({type: 'playerPo', position: playerPosition});
 }, player.vitesse);
 
 
@@ -51,7 +51,7 @@ onkeydown = function(e){
     if(jQuery.inArray(e.keyCode, keysAllowed ) != -1){
         if(e.keyCode == 27){
         	clearInterval(avancer);
-        	foodWorker.postMessage('stop');
+        	foodWorker.postMessage({type: 'stop'});
         }else{
         	var data = {snakeData: player, keyData: e.keyCode};
         	snakeWorker.postMessage(data);
@@ -66,15 +66,16 @@ snakeWorker.onmessage=function(event){
 		player = value;
 	}
 };
+
 foodWorker.onmessage=function(event){
 	var value = event.data;
 	if(value){
-		if(value.collision){
+		if(value.type === 'collision'){
 			player.size = value.size;
-		}else{
-			if($('#map').html != value){
+		}else if (value.type === 'update'){
+			if($('#map').html != value.html){
 				$('.food').remove();
-				$('#map').append(value);
+				$('#map').append(value.html);
 			}
 
 		}

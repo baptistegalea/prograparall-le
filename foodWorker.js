@@ -1,6 +1,6 @@
 
 var foodList = [];
-
+var increment = 1;
 
 	
 var genFood = setInterval(function(){
@@ -12,12 +12,12 @@ var genFood = setInterval(function(){
 		var pourcLeft = Math.floor(Math.random() * 1820) + 10; 
 		var pourcTop = Math.floor(Math.random() * 1820) + 10;
 		var size =  Math.floor(Math.random() * 12) + 5;
-		var time = 120;		
-		
-		foodList.push({left: pourcLeft, top: pourcTop, timeLeft: time, size: size});	
-
+		var time = 120;	
+		var id = 'food-' + increment;
+		foodList.push({id: id, left: pourcLeft, top: pourcTop, timeLeft: time, size: size});	
+		increment++;
 	}
-	postMessage(getHtml());
+	postMessage({type: 'update', html: getHtml()});
 	
 	foodList = updateFoodList();
 	
@@ -43,7 +43,7 @@ function getHtml(){
 	
 	foodList.forEach(function(food){
 		
-		html += '<div class="food" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
+		html += '<div class="food" id="'+ food.id +'" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
 		
 	});
 	
@@ -53,10 +53,11 @@ function getHtml(){
 
 onmessage=function(event){
 	
-	if(event.data == 'stop'){
+	var data = event.data;
+	if (data.type === 'stop'){
     	clearInterval(genFood);
-	}else{
-		var player = event.data;
+	}else if(data.type === 'playerPo'){
+		var player = data.position;
 		var safeFoodList = [];
 		//console.log(player);
 		foodList.forEach(function(food){
@@ -64,14 +65,11 @@ onmessage=function(event){
 			if(collision(player, food)){
 				console.log('collision');
 				var size = {width: (food.size/4) + player.width, height: (food.size/4) + player.height};
-				postMessage({collision: 'true', size: size});
+				postMessage({type: 'collision', collision: 'true', size: size});
 				
 			}else{
 				safeFoodList.push(food);
 			}
-			
-			
-			
 		});
 		foodList = safeFoodList;
 		//console.log(event.data);
