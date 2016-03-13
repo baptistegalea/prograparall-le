@@ -14,11 +14,11 @@ html, body{
 }
 
 .food{
-	background: black;
-	opacity: 0%;
+	background: blue;
 	position: absolute;
 	height: 5px;
 	width: 5px;
+	display: none;
 }
 
 p{

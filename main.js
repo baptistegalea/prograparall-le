@@ -72,11 +72,17 @@ player1.onmessage=function(event){
 foodWorker.onmessage=function(event){
 	var value = event.data;
 	if(value){
-		if(value.type === 'collision' || value.type === 'foodTimeLeft'){
+		if(value.type === 'collision'){
 			console.log(value.divId);
 			$('#' + value.divId).remove();
+		}else if(value.type === 'foodTimeLeft'){
+			$('#' + value.divId).fadeOut('slow', function(){
+				$('#' + value.divId).remove();
+			});
+			
 		}else if(value.type === "addNewFood"){
 			$('#map').append(value.html);
+			$('#' + value.divId).fadeIn();
 		}else if(value.type === "playerSizeUpdate"){
 			player.size = value.newPlayerSize;
 		}

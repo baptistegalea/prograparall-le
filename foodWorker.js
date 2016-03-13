@@ -20,7 +20,7 @@ var interGenFood = setInterval(function(){
 		foodList.push(food);	
 		increment++;
 		
-		postMessage({type: 'addNewFood', html: getHtmlFood(food)});
+		postMessage({type: 'addNewFood', html: getHtmlFood(food), divId: food.id});
 	}
 
 	
