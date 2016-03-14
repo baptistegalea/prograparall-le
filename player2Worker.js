@@ -1,12 +1,46 @@
-var playerData;
+var playerData = {
+		nom: 'Player2',
+		vitesse: 5,
+		size: {width:30, height: 30},
+		direction: 'left',
+		position: {	left: 1850, top: 890}
+};
 
+postMessage({type: 'updatePlayer', player: playerData});
 
-
-var interUpdatePly=ayer = setInterval(function(){
+var interUpdatePlayer = setInterval(function(){
 	
-	postMessage({type: 'updatePlayer1', player: playerData});
-}, 30);
+	if(playerData.direction == 'right'){
+		if(playerData.position.left + playerData.size.width >= 1880){
+			playerData.direction = 'left';
+		}else{
+			playerData.position.left += playerData.vitesse;
+		}
+	}
+	if(playerData.direction == 'left'){
+		if(playerData.position.left == 0){
+			playerData.direction = 'right';
+		}else{
+			playerData.position.left -= playerData.vitesse;
+		}
+	}
+	if(playerData.direction == 'bot'){
+		if(playerData.position.top + playerData.size.height >= 925){
+			playerData.direction = 'top';
+		}else{
+			playerData.position.top += playerData.vitesse;
+		}
+	}
+	if(playerData.direction == 'top'){
+		if(playerData.position.top == 0){
+			playerData.direction = 'bot';
+		}else{
+			playerData.position.top -= playerData.vitesse;
+		}
+	}
+	postMessage({type: 'updatePlayer', player: playerData});
 
+}, 30);
 
 
 onmessage=function(event){
@@ -19,7 +53,10 @@ onmessage=function(event){
 		updateDirection(data.key);
 		
 	}else if(data.type === 'updateSize'){
-		playerData.size = data.newSize;
+		playerData.size.width += data.bonus;
+		playerData.size.height += data.bonus;	
+	}else if(data.type === 'stop'){
+    	clearInterval(interUpdatePlayer);
 		
 	}
 	
@@ -34,38 +71,22 @@ function updateDirection(key){
 	 * 40 : bas
 	 * 37 : gauche
 	 */
-	var result = true;
+	
+	if(key == 81){
+		playerData.direction = "left";
+	}
+	
+	if(key == 90){
+		playerData.direction = "top";
+	}	
 
-	
-	if((playerData.direction == 'left' && key == 81) || (playerData.direction == 'right' && key == 68)){
-		result = false;
+	if(key == 68){
+		playerData.direction = "right";
 	}
 	
-	if((playerData.direction == 'top' && key == 90) || (playerData.direction == 'bot' && key == 83)){
-		result = false;
-	}
-	
-	if(result){
-		if(key == 81){
-			playerData.direction = "left";
-			playerData.deplacement = {left: "-=5"};
-		}
-		
-		if(key == 90){
-			playerData.direction = "top";
-			playerData.deplacement = {top: "-=5"};
-		}	
-	
-		if(key == 68){
-			playerData.direction = "right";
-			playerData.deplacement = {left: "+=5"};
-		}
-		
-		if(key == 83){
-			playerData.direction = "bot";
-			playerData.deplacement = {top: "+=5"};
-		}	
-	}
+	if(key == 83){
+		playerData.direction = "bot";
+	}	
 }
 
 

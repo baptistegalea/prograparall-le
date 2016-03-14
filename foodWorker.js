@@ -1,8 +1,20 @@
 
 var foodList = [];
 var increment = 1;
-var player1= {nom: 'Player1', position: {left: '1', top: '1', height: '30', width: '30'}};
-var player2= {nom: 'Player2', position: {left: '500', top: '500', height: '30', width: '30'}};
+var player1 = {
+		nom: 'Player1',
+		vitesse: 5,
+		size: {width:30, height: 30},
+		direction: 'right',
+		position: {	left: 0, top: 0}
+};
+var player2 = {
+		nom: 'Player2',
+		vitesse: 5,
+		size: {width:30, height: 30},
+		direction: 'right',
+		position: {	left: 1850, top: 890}
+};
 
 var interGenFood = setInterval(function(){
 	
@@ -11,7 +23,7 @@ var interGenFood = setInterval(function(){
 	if(random < 5000){
 		
 		var pourcLeft = Math.floor(Math.random() * 1820) + 10; 
-		var pourcTop = Math.floor(Math.random() * 1820) + 10;
+		var pourcTop = Math.floor(Math.random() * 870) + 10;
 		var size =  Math.floor(Math.random() * 12) + 5;
 		var time = 400;	
 		var id = 'food-' + increment;
@@ -38,9 +50,9 @@ function updateFoodList(){
 	foodList.forEach(function(food){
 		food.timeLeft--;	
 		
-		if(collision(player1.position, food)){
+		if(collision(player1, food)){
 			onCollision(food, player1);
-		}else if(collision(player2.position, food)){
+		}else if(collision(player2, food)){
 			onCollision(food, player2);
 		}else{
 			if(food.timeLeft > 0){
@@ -70,17 +82,17 @@ onmessage=function(event){
     	clearInterval(interGenFood);
     	clearInterval(interUpdateFoodList);
 	}else if(data.type === 'updatePlayer1Po'){
-		player1.position = data.position;
+		player1 = data.player;
 	}else if(data.type === 'updatePlayer2Po'){
-		player2.position = data.position;
+		player2 = data.player;
 	}
 }
 
 function collision(player, food) {
-    var x1 = player.left;
-    var y1 = player.top;
-    var h1 = player.height;
-    var w1 = player.width;
+    var x1 = player.position.left;
+    var y1 = player.position.top;
+    var h1 = player.size.height;
+    var w1 = player.size.width;
     var b1 = y1 + h1;
     var r1 = x1 + w1;
     var x2 = food.left;
@@ -91,18 +103,15 @@ function collision(player, food) {
     var r2 = x2 + w2;
 
     if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
+    console.log('collision');
     return true;
+
   }
 
 function onCollision(food, player){
 	var bonus = (food.size/4);
-	
-	var newPlayerWidth = player.position.width + bonus;
-	var newPlayerHeight = player.position.height + bonus;
-	
-	var size = {width: newPlayerWidth, height: newPlayerHeight};
 	postMessage({type: 'collision', divId: food.id});
-	postMessage({type: 'playerSizeUpdate', newPlayerSize: size, nomPlayer: player.nom});
+	postMessage({type: 'playerSizeUpdate', bonus: bonus, nomPlayer: player.nom});
 }
 
 
