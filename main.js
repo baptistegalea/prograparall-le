@@ -8,7 +8,7 @@
 
 
 // liste des touches autorisées //
-var keysAllowed = [27, 38, 39, 40, 37, 81, 90, 68, 83];
+var keysAllowed = [27, 38, 39, 40, 37, 81, 90, 68, 83, 17, 70];
 var keysPlayer1 = [38, 39, 40, 37];
 var keysPlayer2 = [81, 90, 68, 83];
 var vitesse = 30;
@@ -30,13 +30,15 @@ onkeydown = function(e){
     if(jQuery.inArray(e.keyCode, keysAllowed ) != -1){
         if(e.keyCode == 27){
         	//clearInterval(avancer);
-        	foodWorker.postMessage({type: 'stop'});
-        	wplayer1.postMessage({type: 'stop'});
-        	wplayer2.postMessage({type: 'stop'});
         }else if(jQuery.inArray(e.keyCode, keysPlayer1 ) != -1){
         	wplayer1.postMessage({type: 'updateDirection', key: e.keyCode});
         }else if(jQuery.inArray(e.keyCode, keysPlayer2 ) != -1){
         	wplayer2.postMessage({type: 'updateDirection', key: e.keyCode});
+        }else if(e.keyCode == 17){
+        	wplayer1.postMessage({type: 'getAuthToProjectile'});
+        }else if(e.keyCode == 70){
+        	//foodWorker.postMessage({type: 'newProjectile', player: player2});
+        	wplayer2.postMessage({type: 'getAuthToProjectile'});
         }
     };
     
@@ -51,6 +53,13 @@ wplayer1.onmessage=function(event){
 			$( "#player1" ).css( "left", player1.position.left).css( "top", player1.position.top).css( "height",player1.size.height).css( "width", player1.size.width);
 			
 			foodWorker.postMessage({type: 'updatePlayer1Po', player: player1});
+		}else if(value.type === 'projectileAutorisation' && value.value == true){
+        	foodWorker.postMessage({type: 'newProjectile', player: player1});
+
+		}else if(value.type === 'death'){
+			end();
+        	alert('Le player 2 a remporté la partie');
+
 		}
 	}
 };
@@ -62,7 +71,13 @@ wplayer2.onmessage=function(event){
 			player2 = value.player;
 			$( "#player2" ).css( "left", player2.position.left).css( "top", player2.position.top).css( "height",player2.size.height).css( "width", player2.size.width);
 			foodWorker.postMessage({type: 'updatePlayer2Po', player: player2});
-		}	
+		}else if(value.type === 'projectileAutorisation' && value.value == true){
+        	foodWorker.postMessage({type: 'newProjectile', player: player2});
+
+		}else if(value.type === 'death'){
+			end();
+        	alert('Le player 1 a remporté la partie');
+		}
 	}
 };
 
@@ -79,6 +94,9 @@ foodWorker.onmessage=function(event){
 		}else if(value.type === "addNewFood"){
 			$('#map').append(value.html);
 			$('#' + value.divId).fadeIn();
+		}else if(value.type === "addNewProjectile"){
+			$('#map').append(value.html);
+			$('#' + value.divId).fadeIn();
 		}else if(value.type === "playerSizeUpdate"){
 			if(value.nomPlayer === "Player1"){	
 				wplayer1.postMessage({type: 'updateSize', bonus: value.bonus});
@@ -86,7 +104,23 @@ foodWorker.onmessage=function(event){
 			if(value.nomPlayer === "Player2"){	
 				wplayer2.postMessage({type: 'updateSize', bonus: value.bonus});
 			}
+		}else if(value.type === 'projectileUpdate'){
+			$('#' + value.projectile.id).css( "left", value.projectile.left).css( "top", value.projectile.top).css( "height",value.projectile.height).css( "width", value.projectile.width);
+		}else if(value.type === 'projectileTimeLeft'){
+			$('#' + value.divId).remove();
+		}else if(value.type === 'deleteProjectile'){
+			console.log('removing projectile');
+			$('#' + value.divId).remove();
 		}
 	
 	}
 };
+
+function end(){
+	foodWorker.postMessage({type: 'stop'});
+	wplayer1.postMessage({type: 'stop'});
+	wplayer2.postMessage({type: 'stop'});
+	foodWorker.terminate();
+	wplayer1.terminate();
+	wplayer2.terminate();
+}

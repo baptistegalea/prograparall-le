@@ -54,9 +54,22 @@ onmessage=function(event){
 		
 	}else if(data.type === 'updateSize'){
 		playerData.size.width += data.bonus;
-		playerData.size.height += data.bonus;	
+		playerData.size.height += data.bonus;
+		if(playerData.size.width < 6 || playerData.size.height < 6){
+			postMessage({type: 'death'});
+		}
 	}else if(data.type === 'stop'){
     	clearInterval(interUpdatePlayer);
+		
+	}else if(data.type === 'getAuthToProjectile'){
+		if(playerData.size.width >= 32){
+			playerData.size.width -= 2;
+			playerData.size.height -= 2;
+			postMessage({type: 'projectileAutorisation', value: true});
+		}else{
+			postMessage({type: 'projectileAutorisation', value: false});
+
+		}
 		
 	}
 	
@@ -88,5 +101,4 @@ function updateDirection(key){
 		playerData.direction = "bot";
 	}	
 }
-
 
