@@ -46,7 +46,7 @@ var interGenFood = setInterval(function(){
 			size =  20;	
 		}
 		
-		while(collision(player1, {left: left, top: top, size: size}) || collision(player2, {left: left, top: top, size: size})){
+		while(collision(player1, {position: {left: left, top: top}, size : { height: size, width : size}}) || collision(player2, {position: {left: left, top: top}, size : { height: size, width : size}})){
 			left = Math.floor(Math.random() * 1820) + 10; 
 			top = Math.floor(Math.random() * 870) + 10;
 		}
@@ -55,7 +55,7 @@ var interGenFood = setInterval(function(){
 		var time = 400;
 		
 		id = type + '-' + increment;
-		var food = {id: id, type: type, classe: type ,left: left, top: top, timeLeft: time, size: size};
+		var food = {id: id, type: type, classe: type , position: {left: left, top: top}, timeLeft: time, size:{width: size, height: size}};
 		foodList.push(food);	
 		increment++;
 		
@@ -75,8 +75,8 @@ var interUpdateFoodList = setInterval(function(){
 }, 30);
 
 function checkPlayersCollision(){
-	if(collision(player1, player2)){
-	}
+	/*if(collision(player1, player2)){
+	}*/
 }
 function updateProjectileList(){
 	
@@ -85,35 +85,35 @@ function updateProjectileList(){
 	projectileList.forEach(function(projectile){
 		projectile.timeLeft--;	
 		if(projectile.direction == 'right'){
-			if(projectile.left + projectile.size >= 1880){
+			if(projectile.position.left + projectile.size.width >= 1880){
 				postMessage({type: 'deleteProjectile', divId: projectile.id});
 				return;
 			}else{
-				projectile.left += projectile.vitesse;
+				projectile.position.left += projectile.vitesse;
 			}
 		}
 		if(projectile.direction == 'left'){
-			if(projectile.left <= 0){
+			if(projectile.position.left <= 0){
 				postMessage({type: 'deleteProjectile', divId: projectile.id});
 				return;
 			}else{
-				projectile.left -= projectile.vitesse;
+				projectile.position.left -= projectile.vitesse;
 			}
 		}
 		if(projectile.direction == 'bot'){
-			if(projectile.top + projectile.size >= 925){
+			if(projectile.position.top + projectile.size.width >= 925){
 				postMessage({type: 'deleteProjectile', divId: projectile.id});
 				return;
 			}else{
-				projectile.top += projectile.vitesse;
+				projectile.position.top += projectile.vitesse;
 			}
 		}
 		if(projectile.direction == 'top'){
-			if(projectile.top <= 0){
+			if(projectile.position.top <= 0){
 				postMessage({type: 'deleteProjectile', divId: projectile.id});
 				return;
 			}else{
-				projectile.top -= projectile.vitesse;
+				projectile.position.top -= projectile.vitesse;
 			}
 		}
 		
@@ -164,7 +164,7 @@ function updateFoodList(){
 function getHtmlFood(food){
 	var html = '';
 	
-	html = '<div class="' + food.classe + '" id="'+ food.id +'" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
+	html = '<div class="' + food.classe + '" id="'+ food.id +'" style="left:' + food.position.left + 'px; top: '+ food.position.top + 'px; width:' + food.size.width + 'px; height:' + food.size.height + 'px;"></div>';
 	
 	return html;
 	
@@ -205,7 +205,7 @@ onmessage=function(event){
 			top = player.position.top + (player.size.height/2); 
 		}	
 		
-		projectile = {id: id, type: 'projectile', classe: 'projectile-' + player.nom ,left: left, top: top, timeLeft: time, size: size, owner: player, vitesse: 10, direction: direction};
+		projectile = {id: id, type: 'projectile', classe: 'projectile-' + player.nom , position : {left: left, top: top}, timeLeft: time, size: {height: size, width: size}, owner: player, vitesse: 10, direction: direction};
 		
 		projectileList.push(projectile);
 		postMessage({type: 'addNewProjectile', html: getHtmlFood(projectile), divId: id});
@@ -214,18 +214,18 @@ onmessage=function(event){
 	}
 }
 
-function collision(player, food) {
+function collision(object1, object2) {
 	
-	    var x1 = player.position.left;
-	    var y1 = player.position.top;
-	    var h1 = player.size.height;
-	    var w1 = player.size.width;
+	    var x1 = object1.position.left;
+	    var y1 = object1.position.top;
+	    var h1 = object1.size.height;
+	    var w1 = object1.size.width;
 	    var b1 = y1 + h1;
 	    var r1 = x1 + w1;
-	    var x2 = food.left;
-	    var y2 = food.top;
-	    var h2 = food.size;
-	    var w2 = food.size;
+	    var x2 = object2.position.left;
+	    var y2 = object2.position.top;
+	    var h2 = object2.size.height;
+	    var w2 = object2.size.width;
 	    var b2 = y2 + h2;
 	    var r2 = x2 + w2;
 	
@@ -233,7 +233,7 @@ function collision(player, food) {
 	
 	    return true;
 
-  }
+}
 
 function onCollision(food, player){
 	var bonus;
@@ -245,7 +245,7 @@ function onCollision(food, player){
 		bonus = -7;
 		postMessage({type: 'playerSizeUpdateProjectile', bonus: bonus, nomPlayer: player.nom});
 	}else if(food.type == 'food'){
-		bonus = (food.size/4);
+		bonus = (food.size.width /4);
 		postMessage({type: 'playerSizeUpdate', bonus: bonus, nomPlayer: player.nom});
 	}else if(food.type == 'bonus'){
 		bonus = {type: 'vitesse', value: 4, time: 125};

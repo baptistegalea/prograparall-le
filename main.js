@@ -116,7 +116,7 @@ foodWorker.onmessage=function(event){
 				wplayer2.postMessage({type: 'updateSize', bonus: value.bonus});
 			}
 		}else if(value.type === 'projectileUpdate'){
-			$('#' + value.projectile.id).css( "left", value.projectile.left).css( "top", value.projectile.top).css( "height",value.projectile.height).css( "width", value.projectile.width);
+			$('#' + value.projectile.id).css( "left", value.projectile.position.left).css( "top", value.projectile.position.top).css( "height",value.projectile.size.height).css( "width", value.projectile.size.width);
 		}else if(value.type === 'projectileTimeLeft'){
 			$('#' + value.divId).remove();
 		}else if(value.type === 'deleteProjectile'){
