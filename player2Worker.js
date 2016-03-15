@@ -1,6 +1,6 @@
 var playerData = {
 		nom: 'Player2',
-		vitesse: 5,
+		vitesse: 2.5,
 		size: {width:30, height: 30},
 		direction: 'left',
 		position: {	left: 1850, top: 890},
@@ -54,31 +54,37 @@ var interUpdatePlayer = setInterval(function(){
 	}
 	postMessage({type: 'updatePlayer', player: playerData});
 
-}, 30);
+}, 13);
 
 function updateEvent(){
-	if(playerData.malus.active == true && playerData.malus.timeLeft == 0){
-		playerData.malus.active = false;
-		playerData.malus.timeLeft = 0;
-		playerData.malus.value = 0;
-	}else{
-		playerData.malus.timeLeft--;
-	}
-	if(playerData.bonus.active == true && playerData.bonus.timeLeft == 0){
-		playerData.bonus.active = false;
-		playerData.bonus.timeLeft = 0;
-		playerData.bonus.value = 0;
-	}else{
-		playerData.bonus.timeLeft--;
+	if(playerData.malus.active == true){
+		if(playerData.malus.timeLeft == 0){
+			playerData.malus.active = false;
+			playerData.malus.timeLeft = 0;
+			playerData.malus.value = 0;
+		}else{
+			playerData.malus.timeLeft--;
+		}
 	}
 	
-	if(playerData.shield.active == true && playerData.shield.timeLeft == 0){
-		playerData.shield.active = false;
-		playerData.shield.timeLeft = 0;
-		// remove shield dans le dom
-		postMessage({type : 'endOfShield'});
-	}else{
-		playerData.shield.timeLeft--;
+	if(playerData.bonus.active == true){
+		if(playerData.bonus.timeLeft == 0){
+			playerData.bonus.active = false;
+			playerData.bonus.timeLeft = 0;
+			playerData.bonus.value = 0;
+		}else{
+			playerData.bonus.timeLeft--;
+		}
+	}
+	if(playerData.shield.active == true){
+		if(playerData.shield.timeLeft == 0){
+			playerData.shield.active = false;
+			playerData.shield.timeLeft = 0;
+			// remove shield dans le dom
+			postMessage({type : 'endOfShield'});
+		}else{
+			playerData.shield.timeLeft--;
+		}
 	}
 }
 
@@ -92,9 +98,10 @@ onmessage=function(event){
 		updateDirection(data.key);
 		
 	}else if(data.type === 'updateSize'){
-		playerData.size.width += data.bonus;
-		playerData.size.height += data.bonus;
-		
+		if(playerData.size.width + data.bonus <= 500 || playerData.size.height + data.bonus <= 500){
+			playerData.size.width += data.bonus;
+			playerData.size.height += data.bonus;
+		}
 		if(playerData.size.width < 3 || playerData.size.height < 3){
 			postMessage({type: 'death'});
 		}
@@ -112,8 +119,8 @@ onmessage=function(event){
 		
 	}else if(data.type === 'getAuthToProjectile'){
 		if(playerData.size.width >= 32){
-			playerData.size.width -= 2;
-			playerData.size.height -= 2;
+			playerData.size.width -= 1;
+			playerData.size.height -= 1;
 			postMessage({type: 'projectileAutorisation', value: true});
 		}else{
 			postMessage({type: 'projectileAutorisation', value: false});
@@ -125,9 +132,27 @@ onmessage=function(event){
 		playerData.bonus = {active: true, timeLeft: data.bonus.time, value : data.bonus.value};
 	}else if(data.type === 'newShield'){
 		playerData.shield = {active: true, timeLeft: data.shield.time};
-	}	
+	}
 };
 
+function revertPlayerDirection(){
+	if(playerData.direction == 'right'){
+		playerData.position.left-=30;
+		playerData.direction = 'left';
+
+	}else if(playerData.direction == 'left'){
+		playerData.position.left+=30;
+		playerData.direction = 'right';
+
+	}else if(playerData.direction == 'bot'){
+		playerData.position.top-=30;
+		playerData.direction = 'top';
+	}else if(playerData.direction == 'top'){
+		playerData.position.top+=30;
+
+		playerData.direction = 'bot';
+	}	
+}
 
 function updateDirection(key){
 	

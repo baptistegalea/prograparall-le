@@ -3,21 +3,23 @@ var foodList = [];
 var increment = 1;
 var player1 = {
 		nom: 'Player1',
-		vitesse: 5,
+		vitesse: 2.5,
 		size: {width:30, height: 30},
 		direction: 'right',
 		position: {	left: 0, top: 0},
-		malus: {active: false, timeLeft: 0},
-		bonus: {active: false, timeLeft: 0}
+		malus: {active: false, timeLeft: 0, value: 0},
+		bonus: {active: false, timeLeft: 0, value: 0},
+		shield: {active: false, timeLeft: 0}
 };
 var player2 = {
 		nom: 'Player2',
-		vitesse: 5,
+		vitesse: 2.5,
 		size: {width:30, height: 30},
 		direction: 'right',
 		position: {	left: 1850, top: 890},
-		malus: {active: false, timeLeft: 0},
-		bonus: {active: false, timeLeft: 0}
+		malus: {active: false, timeLeft: 0, value: 0},
+		bonus: {active: false, timeLeft: 0, value: 0},
+		shield: {active: false, timeLeft: 0}
 };
 
 var projectileList = [];
@@ -26,22 +28,24 @@ var interGenFood = setInterval(function(){
 	
 	var random = Math.random() * 10000;
 	
-	if(random < 4000){
-		random = Math.random() * 25;
+	if(random < 6000){
+		random = Math.random() * 30;
 		var left = Math.floor(Math.random() * 1820) + 10; 
 		var top = Math.floor(Math.random() * 870) + 10;
 		var size;
+		var time = 600;
 		
-		if(random <= 22){
+		if(random <= 27){
 			type = 'food';
 			size =  Math.floor(Math.random() * 12) + 4;
-		}else if (random <= 23){
+			time = 1000;
+		}else if (random <= 28){
 			type = 'bonus';
 			size =  20;
-		}else if (random <= 24){
+		}else if (random <= 29){
 			type = 'malus';
 			size =  20;	
-		}else if (random <= 25){
+		}else if (random <= 30){
 			type = 'shieldbloc';
 			size =  20;	
 		}
@@ -50,10 +54,6 @@ var interGenFood = setInterval(function(){
 			left = Math.floor(Math.random() * 1820) + 10; 
 			top = Math.floor(Math.random() * 870) + 10;
 		}
-
-
-		var time = 400;
-		
 		id = type + '-' + increment;
 		var food = {id: id, type: type, classe: type , position: {left: left, top: top}, timeLeft: time, size:{width: size, height: size}};
 		foodList.push(food);	
@@ -70,14 +70,7 @@ var interUpdateFoodList = setInterval(function(){
 	if(projectileList.length > 0){
 		projectileList = updateProjectileList();
 	}
-	
-	checkPlayersCollision();
-}, 30);
-
-function checkPlayersCollision(){
-	/*if(collision(player1, player2)){
-	}*/
-}
+}, 13);
 function updateProjectileList(){
 	
 	var newList = [];
@@ -186,8 +179,8 @@ onmessage=function(event){
 		var player = data.player;
 		var left = player.position.left;
 		var top = player.position.top;
-		var time = 60;
-		var size = 10;
+		var time = 120;
+		var size = (player.size.width / 3 > 35 ? 35 : player.size.width / 3);
 		var direction = player.direction;
 		
 		if(player.direction == 'right'){
@@ -204,8 +197,8 @@ onmessage=function(event){
 		if(player.direction == 'right' || player.direction == 'left'){
 			top = player.position.top + (player.size.height/2); 
 		}	
-		
-		projectile = {id: id, type: 'projectile', classe: 'projectile-' + player.nom , position : {left: left, top: top}, timeLeft: time, size: {height: size, width: size}, owner: player, vitesse: 10, direction: direction};
+		var vitesse = (player.vitesse * 2) + player.bonus.value - player.malus.value;
+		projectile = {id: id, type: 'projectile', classe: 'projectile-' + player.nom , position : {left: left, top: top}, timeLeft: time, size: {height: size, width: size}, owner: player, vitesse: vitesse, direction: direction};
 		
 		projectileList.push(projectile);
 		postMessage({type: 'addNewProjectile', html: getHtmlFood(projectile), divId: id});
@@ -216,22 +209,23 @@ onmessage=function(event){
 
 function collision(object1, object2) {
 	
-	    var x1 = object1.position.left;
-	    var y1 = object1.position.top;
-	    var h1 = object1.size.height;
-	    var w1 = object1.size.width;
-	    var b1 = y1 + h1;
-	    var r1 = x1 + w1;
-	    var x2 = object2.position.left;
-	    var y2 = object2.position.top;
-	    var h2 = object2.size.height;
-	    var w2 = object2.size.width;
-	    var b2 = y2 + h2;
-	    var r2 = x2 + w2;
-	
-	    if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
-	
-	    return true;
+    var x1 = object1.position.left;
+    var y1 = object1.position.top;
+    var h1 = object1.size.height;
+    var w1 = object1.size.width;
+
+    var x2 = object2.position.left;
+    var y2 = object2.position.top;
+    var h2 = object2.size.height;
+    var w2 = object2.size.width;
+    var b2 = y2 + h2;
+    var r2 = x2 + w2;
+    var b1 = y1 + h1;
+    var r1 = x1 + w1;
+    
+    if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
+
+    return true;
 
 }
 
@@ -248,13 +242,13 @@ function onCollision(food, player){
 		bonus = (food.size.width /4);
 		postMessage({type: 'playerSizeUpdate', bonus: bonus, nomPlayer: player.nom});
 	}else if(food.type == 'bonus'){
-		bonus = {type: 'vitesse', value: 4, time: 125};
+		bonus = {type: 'vitesse', value: 2.5, time: 175};
 		postMessage({type: 'playerAddBonus', bonus: bonus, nomPlayer: player.nom});
 	}else if(food.type == 'malus'){
-		malus = {type: 'vitesse', value: 4, time: 125};
+		malus = {type: 'vitesse', value: 1.5, time: 225};
 		postMessage({type: 'playerAddMalus', malus: malus, nomPlayer: player.nom});
 	}else if(food.type == 'shieldbloc'){
-		shield = {time: 200};
+		shield = {time: 250};
 		postMessage({type: 'playerAddShield', shield: shield, nomPlayer: player.nom});
 		
 	}

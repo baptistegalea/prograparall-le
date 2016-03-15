@@ -34,10 +34,18 @@ onkeydown = function(e){
         	wplayer1.postMessage({type: 'updateDirection', key: e.keyCode});
         }else if(jQuery.inArray(e.keyCode, keysPlayer2 ) != -1){
         	wplayer2.postMessage({type: 'updateDirection', key: e.keyCode});
-        }else if(e.keyCode == 96){
+        }
+    };
+    
+};
+
+
+onkeyup = function(e){
+    e = e || event;
+    if(jQuery.inArray(e.keyCode, keysAllowed ) != -1){
+    	if(e.keyCode == 96){
         	wplayer1.postMessage({type: 'getAuthToProjectile'});
         }else if(e.keyCode == 70){
-        	//foodWorker.postMessage({type: 'newProjectile', player: player2});
         	wplayer2.postMessage({type: 'getAuthToProjectile'});
         }
     };
@@ -59,6 +67,8 @@ wplayer1.onmessage=function(event){
         	//foodWorker.postMessage({type: 'newProjectile', player: player1});
 		}else if(value.type === 'death'){
 			end();
+			$("#player1").remove();
+
         	alert('Le player 2 a remporté la partie');
 		}else if(value.type === 'endOfShield'){
 			$('#player1').removeClass('shield');
@@ -78,6 +88,7 @@ wplayer2.onmessage=function(event){
 
 		}else if(value.type === 'death'){
 			end();
+			$("#player2").remove();
         	alert('Le player 1 a remporté la partie');
 		}else if(value.type === 'endOfShield'){
 			$('#player2').removeClass('shield');
@@ -91,7 +102,7 @@ foodWorker.onmessage=function(event){
 		if(value.type === 'collision'){
 			$('#' + value.divId).remove();
 		}else if(value.type === 'foodTimeLeft'){
-			$('#' + value.divId).fadeOut('slow', function(){
+			$('#' + value.divId).fadeOut('fast', function(){
 				$('#' + value.divId).remove();
 			});
 			
@@ -144,6 +155,9 @@ foodWorker.onmessage=function(event){
 				wplayer2.postMessage({type: 'newShield', shield: value.shield});
 				$('#player2').addClass('shield');
 			}
+		}else if(value.type === 'playersCollision'){
+				//wplayer1.postMessage({type: 'playersCollision'});	
+				//wplayer2.postMessage({type: 'playersCollision'});
 		}
 	
 	}
