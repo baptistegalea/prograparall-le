@@ -6,14 +6,18 @@ var player1 = {
 		vitesse: 5,
 		size: {width:30, height: 30},
 		direction: 'right',
-		position: {	left: 0, top: 0}
+		position: {	left: 0, top: 0},
+		malus: {active: false, timeLeft: 0},
+		bonus: {active: false, timeLeft: 0}
 };
 var player2 = {
 		nom: 'Player2',
 		vitesse: 5,
 		size: {width:30, height: 30},
 		direction: 'right',
-		position: {	left: 1850, top: 890}
+		position: {	left: 1850, top: 890},
+		malus: {active: false, timeLeft: 0},
+		bonus: {active: false, timeLeft: 0}
 };
 
 var projectileList = [];
@@ -22,16 +26,36 @@ var interGenFood = setInterval(function(){
 	
 	var random = Math.random() * 10000;
 	
-	if(random < 5000){
-		
+	if(random < 4000){
+		random = Math.random() * 25;
 		var left = Math.floor(Math.random() * 1820) + 10; 
 		var top = Math.floor(Math.random() * 870) + 10;
-		var size =  Math.floor(Math.random() * 12) + 5;
-		var time = 400;	
-		var id = 'food-' + increment;
+		var size;
 		
-		var food = {id: id, left: left, top: top, timeLeft: time, size: size};
+		if(random <= 22){
+			type = 'food';
+			size =  Math.floor(Math.random() * 12) + 4;
+		}else if (random <= 23){
+			type = 'bonus';
+			size =  20;
+		}else if (random <= 24){
+			type = 'malus';
+			size =  20;	
+		}else if (random <= 25){
+			type = 'shieldbloc';
+			size =  20;	
+		}
 		
+		while(collision(player1, {left: left, top: top, size: size}) || collision(player2, {left: left, top: top, size: size})){
+			left = Math.floor(Math.random() * 1820) + 10; 
+			top = Math.floor(Math.random() * 870) + 10;
+		}
+
+
+		var time = 400;
+		
+		id = type + '-' + increment;
+		var food = {id: id, type: type, classe: type ,left: left, top: top, timeLeft: time, size: size};
 		foodList.push(food);	
 		increment++;
 		
@@ -39,16 +63,21 @@ var interGenFood = setInterval(function(){
 	}
 
 	
-}, 250);
+}, 150);
 
 var interUpdateFoodList = setInterval(function(){
 	foodList = updateFoodList();
 	if(projectileList.length > 0){
 		projectileList = updateProjectileList();
 	}
+	
+	checkPlayersCollision();
 }, 30);
 
-
+function checkPlayersCollision(){
+	if(collision(player1, player2)){
+	}
+}
 function updateProjectileList(){
 	
 	var newList = [];
@@ -135,7 +164,7 @@ function updateFoodList(){
 function getHtmlFood(food){
 	var html = '';
 	
-	html = '<div class="food" id="'+ food.id +'" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
+	html = '<div class="' + food.classe + '" id="'+ food.id +'" style="left:' + food.left + 'px; top: '+ food.top + 'px; width:' + food.size + 'px; height:' + food.size + 'px;"></div>';
 	
 	return html;
 	
@@ -176,7 +205,7 @@ onmessage=function(event){
 			top = player.position.top + (player.size.height/2); 
 		}	
 		
-		projectile = {id: id, left: left, top: top, timeLeft: time, size: size, owner: player, vitesse: 10, direction: direction};
+		projectile = {id: id, type: 'projectile', classe: 'projectile-' + player.nom ,left: left, top: top, timeLeft: time, size: size, owner: player, vitesse: 10, direction: direction};
 		
 		projectileList.push(projectile);
 		postMessage({type: 'addNewProjectile', html: getHtmlFood(projectile), divId: id});
@@ -207,15 +236,28 @@ function collision(player, food) {
   }
 
 function onCollision(food, player){
-	var bonus = (food.size/4);
-	//si owner alors c'est un projectile et non une food, dans ce cas on enlève
-	if(food.owner){
-		bonus = -4;
-	}
-
+	var bonus;
+	var malus;
 	postMessage({type: 'collision', divId: food.id});
-	postMessage({type: 'playerSizeUpdate', bonus: bonus, nomPlayer: player.nom});
-
+	
+	//si owner alors c'est un projectile et non une food, dans ce cas on enlève
+	if(food.type == 'projectile'){
+		bonus = -7;
+		postMessage({type: 'playerSizeUpdateProjectile', bonus: bonus, nomPlayer: player.nom});
+	}else if(food.type == 'food'){
+		bonus = (food.size/4);
+		postMessage({type: 'playerSizeUpdate', bonus: bonus, nomPlayer: player.nom});
+	}else if(food.type == 'bonus'){
+		bonus = {type: 'vitesse', value: 4, time: 125};
+		postMessage({type: 'playerAddBonus', bonus: bonus, nomPlayer: player.nom});
+	}else if(food.type == 'malus'){
+		malus = {type: 'vitesse', value: 4, time: 125};
+		postMessage({type: 'playerAddMalus', malus: malus, nomPlayer: player.nom});
+	}else if(food.type == 'shieldbloc'){
+		shield = {time: 200};
+		postMessage({type: 'playerAddShield', shield: shield, nomPlayer: player.nom});
+		
+	}
 }
 
 

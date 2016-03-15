@@ -10,9 +10,28 @@ html, body{
 	height: 30px;
 }
 
+
+.shield {
+	border: solid 2px yellow;
+}
+
+.shieldbloc {
+	border: solid 2px yellow;
+	background: orange;
+	position: absolute;
+	display: none;
+}
 #player2{
-		background: green none repeat scroll 0% 0%;
+	background: purple none repeat scroll 0% 0%;
 	
+}
+.projectile-Player1{
+	position: absolute;
+	background: black none repeat scroll 0% 0%;
+}
+.projectile-Player2{
+	position: absolute;
+	background: purple none repeat scroll 0% 0%;
 }
 
 #map{
@@ -25,6 +44,20 @@ html, body{
 
 .food{
 	background: blue;
+	position: absolute;
+	height: 5px;
+	width: 5px;
+	display: none;
+}
+.malus{
+	background: red;
+	position: absolute;
+	height: 5px;
+	width: 5px;
+	display: none;
+}
+.bonus{
+	background: #41BD45;
 	position: absolute;
 	height: 5px;
 	width: 5px;
