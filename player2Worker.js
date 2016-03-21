@@ -1,17 +1,31 @@
-var playerData = {
-		nom: 'Player2',
-		vitesse: 2.5,
-		size: {width:30, height: 30},
-		direction: 'left',
-		position: {	left: 1850, top: 890},
-		malus: {active: false, timeLeft: 0, value: 0},
-		bonus: {active: false, timeLeft: 0, value: 0},
-		shield: {active: false, timeLeft: 0}
-};
+var mapHeight;
+var mapWidth;
+var mapHeight;
+var mapWidth;
+var marge;
+var taille;
+var maxSize;
+var playerData;
+function start(){
+	
+	playerData = {
+			nom: 'Player2',
+			vitesse: 2.5,
+			size: {width:taille, height: taille},
+			direction: 'right',
+			position: {left: mapWidth - taille, top: mapHeight - taille},
+			malus: {active: false, timeLeft: 0, value: 0},
+			bonus: {active: false, timeLeft: 0, value: 0},
+			shield: {active: false, timeLeft: 0}
+	};
+	
+	interUpdatePlayer = setInterval(function(){
+		loopInterUpdatePlayer();
 
-postMessage({type: 'updatePlayer', player: playerData});
+	}, 13);
+}
 
-var interUpdatePlayer = setInterval(function(){
+function loopInterUpdatePlayer(){
 	var vitesse = playerData.vitesse;
 	
 	if(playerData.malus.active == true && playerData.malus.timeLeft > 0){
@@ -25,7 +39,7 @@ var interUpdatePlayer = setInterval(function(){
 	updateEvent();
 	
 	if(playerData.direction == 'right'){
-		if(playerData.position.left + playerData.size.width >= 1880){
+		if(playerData.position.left + playerData.size.width >= mapWidth){
 			playerData.direction = 'left';
 		}else{
 			playerData.position.left += vitesse;
@@ -39,7 +53,7 @@ var interUpdatePlayer = setInterval(function(){
 		}
 	}
 	if(playerData.direction == 'bot'){
-		if(playerData.position.top + playerData.size.height >= 925){
+		if(playerData.position.top + playerData.size.height >= mapHeight){
 			playerData.direction = 'top';
 		}else{
 			playerData.position.top += vitesse;
@@ -53,8 +67,9 @@ var interUpdatePlayer = setInterval(function(){
 		}
 	}
 	postMessage({type: 'updatePlayer', player: playerData});
+}
 
-}, 13);
+
 
 function updateEvent(){
 	if(playerData.malus.active == true){
@@ -98,10 +113,22 @@ onmessage=function(event){
 		updateDirection(data.key);
 		
 	}else if(data.type === 'updateSize'){
-		if(playerData.size.width + data.bonus <= 500 || playerData.size.height + data.bonus <= 500){
+		if(playerData.size.width + data.bonus <= maxSize || playerData.size.height + data.bonus <= maxSize){
 			playerData.size.width += data.bonus;
 			playerData.size.height += data.bonus;
 		}
+		
+		var diffTailleWidth = mapWidth - (playerData.size.width + playerData.position.left);
+		if(diffTailleWidth < 0){
+			playerData.position.left += diffTailleWidth;
+		}
+		
+		var diffTailleHeight = mapHeight - (playerData.size.height + playerData.position.top);
+		if(diffTailleHeight < 0){
+			playerData.position.top += diffTailleHeight;
+		}
+			
+		
 		if(playerData.size.width < 3 || playerData.size.height < 3){
 			postMessage({type: 'death'});
 		}
@@ -132,6 +159,13 @@ onmessage=function(event){
 		playerData.bonus = {active: true, timeLeft: data.bonus.time, value : data.bonus.value};
 	}else if(data.type === 'newShield'){
 		playerData.shield = {active: true, timeLeft: data.shield.time};
+	}else if(data.type === 'initMap'){
+		mapHeight = data.map.mapHeight;
+		mapWidth = data.map.mapWidth;
+		marge = data.map.marge;
+		taille = data.taille;
+		maxSize = (mapHeight > mapWidth ? mapWidth / 2 : mapHeight / 2);
+		start();
 	}
 };
 
@@ -153,7 +187,6 @@ function revertPlayerDirection(){
 		playerData.direction = 'bot';
 	}	
 }
-
 function updateDirection(key){
 	
 	/* keyCode

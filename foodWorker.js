@@ -1,39 +1,31 @@
-
 var foodList = [];
 var increment = 1;
-var player1 = {
-		nom: 'Player1',
-		vitesse: 2.5,
-		size: {width:30, height: 30},
-		direction: 'right',
-		position: {	left: 0, top: 0},
-		malus: {active: false, timeLeft: 0, value: 0},
-		bonus: {active: false, timeLeft: 0, value: 0},
-		shield: {active: false, timeLeft: 0}
-};
-var player2 = {
-		nom: 'Player2',
-		vitesse: 2.5,
-		size: {width:30, height: 30},
-		direction: 'right',
-		position: {	left: 1850, top: 890},
-		malus: {active: false, timeLeft: 0, value: 0},
-		bonus: {active: false, timeLeft: 0, value: 0},
-		shield: {active: false, timeLeft: 0}
-};
+var projectileMaxSize = 35;
+var mapHeight;
+var mapWidth;
+var marge;
+var taille;
+var player1;
+var player2;
 
+var interGenFood;
+var interUpdateFoodList;
 var projectileList = [];
 
-var interGenFood = setInterval(function(){
-	
+function loopInterGenFood(){
+	var left;
+	var top;
+	var food;
 	var random = Math.random() * 10000;
-	
+	var size;
+	var time;
+	var type;
+	var id;
 	if(random < 6000){
 		random = Math.random() * 30;
-		var left = Math.floor(Math.random() * 1820) + 10; 
-		var top = Math.floor(Math.random() * 870) + 10;
-		var size;
-		var time = 600;
+
+		size;
+		time = 600;
 		
 		if(random <= 27){
 			type = 'food';
@@ -49,28 +41,64 @@ var interGenFood = setInterval(function(){
 			type = 'shieldbloc';
 			size =  20;	
 		}
-		
+		left = Math.floor(Math.random() * (mapWidth - marge - size)) + marge; 
+		top = Math.floor(Math.random() * (mapHeight - marge - size)) + marge;
 		while(collision(player1, {position: {left: left, top: top}, size : { height: size, width : size}}) || collision(player2, {position: {left: left, top: top}, size : { height: size, width : size}})){
-			left = Math.floor(Math.random() * 1820) + 10; 
-			top = Math.floor(Math.random() * 870) + 10;
+			left = Math.floor(Math.random() * (mapWidth - marge - size)) + marge; 
+			top = Math.floor(Math.random() * (mapHeight - marge - size)) + marge;
 		}
 		id = type + '-' + increment;
-		var food = {id: id, type: type, classe: type , position: {left: left, top: top}, timeLeft: time, size:{width: size, height: size}};
+		food = {id: id, type: type, classe: type , position: {left: left, top: top}, timeLeft: time, size:{width: size, height: size}};
 		foodList.push(food);	
 		increment++;
 		
 		postMessage({type: 'addNewFood', html: getHtmlFood(food), divId: food.id});
 	}
 
-	
-}, 150);
+}
 
-var interUpdateFoodList = setInterval(function(){
+function loopInterUpdateFoodList(){
 	foodList = updateFoodList();
 	if(projectileList.length > 0){
 		projectileList = updateProjectileList();
 	}
-}, 13);
+}
+
+function start(){
+	
+	
+	player1 = {
+			nom: 'Player1',
+			vitesse: 2.5,
+			size: {width:taille, height: taille},
+			direction: 'right',
+			position: {	left: marge, top: marge},
+			malus: {active: false, timeLeft: 0, value: 0},
+			bonus: {active: false, timeLeft: 0, value: 0},
+			shield: {active: false, timeLeft: 0}
+	};
+	player2 = {
+			nom: 'Player2',
+			vitesse: 2.5,
+			size: {width:taille, height: taille},
+			direction: 'right',
+			position: {left: mapWidth - taille, top: mapHeight - taille},
+			malus: {active: false, timeLeft: 0, value: 0},
+			bonus: {active: false, timeLeft: 0, value: 0},
+			shield: {active: false, timeLeft: 0}
+	};
+	
+	interGenFood = setInterval(function(){
+		loopInterGenFood();
+		
+	}, 150);
+
+	interUpdateFoodList = setInterval(function(){
+		loopInterUpdateFoodList();
+	}, 13);
+}
+
+
 function updateProjectileList(){
 	
 	var newList = [];
@@ -78,7 +106,7 @@ function updateProjectileList(){
 	projectileList.forEach(function(projectile){
 		projectile.timeLeft--;	
 		if(projectile.direction == 'right'){
-			if(projectile.position.left + projectile.size.width >= 1880){
+			if(projectile.position.left + projectile.size.width >= mapWidth){
 				postMessage({type: 'deleteProjectile', divId: projectile.id});
 				return;
 			}else{
@@ -94,7 +122,7 @@ function updateProjectileList(){
 			}
 		}
 		if(projectile.direction == 'bot'){
-			if(projectile.position.top + projectile.size.width >= 925){
+			if(projectile.position.top + projectile.size.width >= mapHeight){
 				postMessage({type: 'deleteProjectile', divId: projectile.id});
 				return;
 			}else{
@@ -180,7 +208,7 @@ onmessage=function(event){
 		var left = player.position.left;
 		var top = player.position.top;
 		var time = 120;
-		var size = (player.size.width / 3 > 35 ? 35 : player.size.width / 3);
+		var size = (player.size.width / 3 > projectileMaxSize ? projectileMaxSize : player.size.width / 3);
 		var direction = player.direction;
 		
 		if(player.direction == 'right'){
@@ -204,6 +232,12 @@ onmessage=function(event){
 		postMessage({type: 'addNewProjectile', html: getHtmlFood(projectile), divId: id});
 
 		increment++;
+	}else if(data.type === 'initMap'){
+		mapHeight = data.map.mapHeight;
+		mapWidth = data.map.mapWidth;
+		marge = data.map.marge;
+		taille = data.taille;
+		start();
 	}
 }
 
@@ -232,6 +266,7 @@ function collision(object1, object2) {
 function onCollision(food, player){
 	var bonus;
 	var malus;
+	var shield;
 	postMessage({type: 'collision', divId: food.id});
 	
 	//si owner alors c'est un projectile et non une food, dans ce cas on enlève

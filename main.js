@@ -17,13 +17,31 @@ var wplayer2=new Worker("player2Worker.js");
 var foodWorker=new Worker("foodWorker.js");
 var player1;
 var player2;
+var htmlHeight;
+var htmlWidth;
+var mapHeight;
+var mapWidth;
+var marge = 10;
+var taille = 30;
 
-
-/*function updateAffichage(){
+function init(){
+	htmlHeight = $('html').height();
+	htmlWidth = $('html').width();
 	
-	$( "#player1" ).css( "left", player1.position.left).css( "top", player1.position.top).css( "height", player1.size.height).css( "width", player1.size.width);
-	$( "#player2" ).css( "left", player2.position.left).css( "top", player2.position.top).css( "height", player2.size.height).css( "width", player2.size.width);
-}*/
+	mapHeight = htmlHeight - marge;
+	mapWidth = htmlWidth - marge;
+
+	$('#map').css("height", mapHeight);
+	$('#map').css("width", mapWidth);
+	
+	$('#map').css("top", marge);
+	$('#map').css("left", marge);
+	
+	wplayer1.postMessage({type:'initMap', map: {mapHeight: mapHeight, mapWidth: mapWidth, marge: marge}, taille: taille});
+	wplayer2.postMessage({type:'initMap', map: {mapHeight: mapHeight, mapWidth: mapWidth, marge: marge}, taille: taille});
+	foodWorker.postMessage({type:'initMap', map: {mapHeight: mapHeight, mapWidth: mapWidth, marge: marge}, taille: taille});
+}
+
   
 onkeydown = function(e){
     e = e || event;
