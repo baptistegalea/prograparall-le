@@ -22,24 +22,27 @@ function loopInterGenFood(){
 	var type;
 	var id;
 	if(random < 6000){
-		random = Math.random() * 30;
+		random = Math.random() * 80;
 
 		size;
 		time = 600;
 		
-		if(random <= 27){
+		if(random <= 72){
 			type = 'food';
 			size =  Math.floor(Math.random() * 12) + 4;
 			time = 1000;
-		}else if (random <= 28){
+		}else if (random <= 74){
 			type = 'bonus';
 			size =  20;
-		}else if (random <= 29){
+		}else if (random <= 76){
 			type = 'malus';
 			size =  20;	
-		}else if (random <= 30){
+		}else if (random <= 79){
 			type = 'shieldbloc';
 			size =  20;	
+		}else if (random <= 80){
+			type = 'deathhead';
+			size =  40;	
 		}
 		left = Math.floor(Math.random() * (mapWidth - marge - size)) + marge; 
 		top = Math.floor(Math.random() * (mapHeight - marge - size)) + marge;
@@ -73,9 +76,10 @@ function start(){
 			size: {width:taille, height: taille},
 			direction: 'right',
 			position: {	left: marge, top: marge},
-			malus: {active: false, timeLeft: 0, value: 0},
-			bonus: {active: false, timeLeft: 0, value: 0},
-			shield: {active: false, timeLeft: 0}
+			malus: {name : 'slow', active: false, timeLeft: 0, value: 0},
+			bonus: {name : 'boost', active: false, timeLeft: 0, value: 0},
+			shield: {name : 'bouclier', active: false, timeLeft: 0},
+			death: {name : 'deathhead', value: 0, timeLeft: 0}
 	};
 	player2 = {
 			nom: 'Player2',
@@ -83,9 +87,10 @@ function start(){
 			size: {width:taille, height: taille},
 			direction: 'right',
 			position: {left: mapWidth - taille, top: mapHeight - taille},
-			malus: {active: false, timeLeft: 0, value: 0},
-			bonus: {active: false, timeLeft: 0, value: 0},
-			shield: {active: false, timeLeft: 0}
+			malus: {name : 'slow', active: false, timeLeft: 0, value: 0},
+			bonus: {name : 'boost', active: false, timeLeft: 0, value: 0},
+			shield: {name : 'bouclier', active: false, timeLeft: 0},
+			death: {name : 'deathhead', value: 0, timeLeft: 0}
 	};
 	
 	interGenFood = setInterval(function(){
@@ -285,7 +290,8 @@ function onCollision(food, player){
 	}else if(food.type == 'shieldbloc'){
 		shield = {time: 250};
 		postMessage({type: 'playerAddShield', shield: shield, nomPlayer: player.nom});
-		
+	}else if(food.type == 'deathhead'){
+		postMessage({type: 'playerDeathMalus', nomPlayer: player.nom, data: {value: (player.size.width / 2)/100, timeLeft: 100}});		
 	}
 }
 

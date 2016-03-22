@@ -8,11 +8,30 @@ html, body{
 	background: black none repeat scroll 0% 0%;
 	width: 30px;
 	height: 30px;
+	z-index: 1;
 }
 
 
 .shield {
 	border: solid 2px yellow;
+}
+.slow{
+	color: red;
+}
+.boost {
+	color: #41BD45;
+}
+.bouclier {
+	color: yellow;
+}
+
+.event{
+    font-weight: bold;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 }
 
 .shieldbloc {
@@ -47,6 +66,16 @@ html, body{
 	width: 5px;
 	display: none;
 }
+.deathhead{
+	background-image:url(deathhead.jpg);
+	position: absolute;
+	height: 8px;
+	width: 8px;
+	display: none;
+	border: 1px solid black;
+    background-repeat:no-repeat;
+    background-size: 100% 100%;
+}
 .malus{
 	background: red;
 	position: absolute;
@@ -64,11 +93,21 @@ html, body{
 .scorediv{
 	position: fixed;
 	width: 90px;
-	height: 30px;
-	background-color: black;
-	opacity: 0.2;
+	height: 90px;
+	background-color: grey;
+	opacity: 0.5;
+	top: 30px;
+	text-align: center;
+	z-index: 2;
+}
+#score2{
+	right: 30px;
+}
+#score1{
+	left: 30px;
 }
 .score{
-	opacity: 1;
+	text-align: center;
+	opacity: 2.5;
 	color: black;
 }

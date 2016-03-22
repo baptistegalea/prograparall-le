@@ -17,9 +17,10 @@ function start(){
 			size: {width:taille, height: taille},
 			direction: 'right',
 			position: {	left: 0, top: 0},
-			malus: {active: false, timeLeft: 0, value: 0},
-			bonus: {active: false, timeLeft: 0, value: 0},
-			shield: {active: false, timeLeft: 0}
+			malus: {name : 'slow', active: false, timeLeft: 0, value: 0},
+			bonus: {name : 'boost', active: false, timeLeft: 0, value: 0},
+			shield: {name : 'bouclier', active: false, timeLeft: 0},
+			death: {name : 'deathhead', value: 0, timeLeft: 0}
 	};
 	
 	interUpdatePlayer = setInterval(function(){
@@ -39,7 +40,27 @@ function loopInterUpdatePlayer(){
 		vitesse+= playerData.bonus.value;
 	}
 	
+	if(playerData.death.timeLeft > 0){
+		playerData.size.width -= playerData.death.value;
+		playerData.size.height -= playerData.death.value;
+	}
+	
 	updateEvent();
+	
+	
+	if(playerData.position.left<0) playerData.position.left = 0;
+	if(playerData.position.top<0) playerData.position.top = 0;
+	
+	var diffTailleWidth = mapWidth - (playerData.size.width + playerData.position.left);
+	if(diffTailleWidth < 0){
+		playerData.position.left += diffTailleWidth;
+	}
+	
+	var diffTailleHeight = mapHeight - (playerData.size.height + playerData.position.top);
+	if(diffTailleHeight < 0){
+		playerData.position.top += diffTailleHeight;
+	}
+	
 	
 	if(playerData.direction == 'right'){
 		if(playerData.position.left + playerData.size.width >= mapWidth){
@@ -69,7 +90,12 @@ function loopInterUpdatePlayer(){
 			playerData.position.top -= vitesse;
 		}
 	}
+	
 	postMessage({type: 'updatePlayer', player: playerData});
+	
+	if(playerData.size.width < 3 || playerData.size.height < 3){
+		postMessage({type: 'death'});
+	}
 }
 
 
@@ -104,6 +130,13 @@ function updateEvent(){
 			playerData.shield.timeLeft--;
 		}
 	}
+	
+	if(playerData.death.timeLeft == 0){
+		playerData.death.value = 0;
+	}else{
+		playerData.death.timeLeft--;
+	}
+
 }
 
 onmessage=function(event){
@@ -116,52 +149,38 @@ onmessage=function(event){
 		updateDirection(data.key);
 		
 	}else if(data.type === 'updateSize'){
-		if(playerData.size.width + data.bonus <= maxSize || playerData.size.height + data.bonus <= maxSize){
+		if(playerData.size.width + data.bonus <= maxSize || playerData.size.height + data.bonus <= maxSize){			
+			playerData.position.left-= (data.bonus/2);
+			playerData.position.top-= (data.bonus/2);
 			playerData.size.width += data.bonus;
 			playerData.size.height += data.bonus;
-		}
-		
-		var diffTailleWidth = mapWidth - (playerData.size.width + playerData.position.left);
-		if(diffTailleWidth < 0){
-			playerData.position.left += diffTailleWidth;
-		}
-		
-		var diffTailleHeight = mapHeight - (playerData.size.height + playerData.position.top);
-		if(diffTailleHeight < 0){
-			playerData.position.top += diffTailleHeight;
-		}
-			
-		
-		if(playerData.size.width < 3 || playerData.size.height < 3){
-			postMessage({type: 'death'});
 		}
 	}else if(data.type === 'updateSizeProjectile'){
 		if(playerData.shield.active == false){
 			playerData.size.width += data.bonus;
 			playerData.size.height += data.bonus;
-			
-			if(playerData.size.width < 3 || playerData.size.height < 3){
-				postMessage({type: 'death'});
-			}
+		
 		}
 	}else if(data.type === 'stop'){
     	clearInterval(interUpdatePlayer);
 		
 	}else if(data.type === 'getAuthToProjectile'){
 		if(playerData.size.width >= 32){
-			playerData.size.width -= 1;
-			playerData.size.height -= 1;
+			playerData.size.width -= 2;
+			playerData.size.height -= 2;
+			playerData.position.left+= 1;
+			playerData.position.top+= 1;
 			postMessage({type: 'projectileAutorisation', value: true});
 		}else{
 			postMessage({type: 'projectileAutorisation', value: false});
 
 		}
 	}else if(data.type === 'newMalus'){
-		playerData.malus = {active: true, timeLeft: data.malus.time, value : data.malus.value};
+		playerData.malus = {name : 'slow', active: true, timeLeft: data.malus.time, value : data.malus.value};
 	}else if(data.type === 'newBonus'){
-		playerData.bonus = {active: true, timeLeft: data.bonus.time, value : data.bonus.value};
+		playerData.bonus = {name : 'boost', active: true, timeLeft: data.bonus.time, value : data.bonus.value};
 	}else if(data.type === 'newShield'){
-		playerData.shield = {active: true, timeLeft: data.shield.time};
+		playerData.shield = {name : 'bouclier', active: true, timeLeft: data.shield.time};
 	}else if(data.type === 'initMap'){
 		mapHeight = data.map.mapHeight;
 		mapWidth = data.map.mapWidth;
@@ -169,6 +188,13 @@ onmessage=function(event){
 		taille = data.taille;
 		maxSize = (mapHeight > mapWidth ? mapWidth / 2 : mapHeight / 2);
 		start();
+	}else if(data.type === 'deathMalus'){
+		if(playerData.shield.active == true){
+			playerData.shield.timeLeft = 0;
+		}else{
+			playerData.death.timeLeft = data.data.timeLeft;
+			playerData.death.value = data.data.value;
+		}
 	}
 };
 
